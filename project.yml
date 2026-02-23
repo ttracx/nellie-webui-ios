@@ -1,0 +1,27 @@
+name: Conduit
+options:
+  bundleIdPrefix: com.nellie
+settings:
+  base:
+    SWIFT_VERSION: 5.10
+    IPHONEOS_DEPLOYMENT_TARGET: "17.0"
+targets:
+  Conduit:
+    type: application
+    platform: iOS
+    deploymentTarget: "17.0"
+    sources:
+      - path: ConduitApp
+    info:
+      path: ConduitApp/Info.plist
+      properties:
+        CFBundleDisplayName: Conduit
+        UILaunchScreen: {}
+        UIApplicationSceneManifest:
+          UIApplicationSupportsMultipleScenes: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.nellie.conduit
+        GENERATE_INFOPLIST_FILE: NO
+        DEVELOPMENT_TEAM: ""
+        CODE_SIGN_STYLE: Automatic
