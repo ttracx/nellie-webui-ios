@@ -15,10 +15,20 @@ final class AppSettingsStore {
         didSet { UserDefaults.standard.set(selectedModel, forKey: Keys.selectedModel) }
     }
 
+    var themePreferenceRawValue: String {
+        didSet { UserDefaults.standard.set(themePreferenceRawValue, forKey: Keys.themePreference) }
+    }
+
+    var themePreference: ThemePreference {
+        get { ThemePreference(rawValue: themePreferenceRawValue) ?? .system }
+        set { themePreferenceRawValue = newValue.rawValue }
+    }
+
     init() {
         self.baseURL = UserDefaults.standard.string(forKey: Keys.baseURL) ?? "http://100.105.6.57:3001"
         self.apiKey = UserDefaults.standard.string(forKey: Keys.apiKey) ?? ""
         self.selectedModel = UserDefaults.standard.string(forKey: Keys.selectedModel) ?? ""
+        self.themePreferenceRawValue = UserDefaults.standard.string(forKey: Keys.themePreference) ?? ThemePreference.system.rawValue
     }
 
     var normalizedBaseURL: URL? {
@@ -33,5 +43,6 @@ final class AppSettingsStore {
         static let baseURL = "conduit.baseURL"
         static let apiKey = "conduit.apiKey"
         static let selectedModel = "conduit.selectedModel"
+        static let themePreference = "conduit.themePreference"
     }
 }

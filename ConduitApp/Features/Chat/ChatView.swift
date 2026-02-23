@@ -98,32 +98,19 @@ final class ChatViewModel {
 struct ChatView: View {
     @Environment(AppSettingsStore.self) private var settings
     @Environment(AuthSessionStore.self) private var auth
+    @Environment(\.vibeTheme) private var theme
     @State private var vm = ChatViewModel()
     @State private var pickerItem: PhotosPickerItem?
 
     var body: some View {
         NavigationStack {
             VStack(spacing: 12) {
-                if !vm.availableModels.isEmpty {
-                    Picker("Model", selection: $settings.selectedModel) {
-                        ForEach(vm.availableModels, id: \.self) { Text($0).tag($0) }
-                    }
-                    .pickerStyle(.menu)
-                    .frame(maxWidth: .infinity, alignment: .leading)
-                }
+                header
 
                 ScrollView {
                     LazyVStack(alignment: .leading, spacing: 10) {
                         ForEach(vm.bubbles) { msg in
-                            VStack(alignment: .leading, spacing: 4) {
-                                Text(msg.role.capitalized)
-                                    .font(.caption)
-                                    .foregroundStyle(.secondary)
-                                Text(msg.content.isEmpty && msg.role == "assistant" ? "Thinking..." : msg.content)
-                                    .padding(10)
-                                    .background(msg.role == "assistant" ? Color.blue.opacity(0.12) : Color.gray.opacity(0.12))
-                                    .clipShape(RoundedRectangle(cornerRadius: 12))
-                            }
+                            chatBubble(msg)
                         }
                     }
                     .frame(maxWidth: .infinity, alignment: .leading)
@@ -136,53 +123,113 @@ struct ChatView: View {
                             .scaledToFill()
                             .frame(width: 54, height: 54)
                             .clipShape(RoundedRectangle(cornerRadius: 10))
+
                         Text("Image attached")
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
+                            .font(VibeTypography.sans(12, weight: .medium))
+                            .foregroundStyle(theme.textSecondary)
+
                         Spacer()
+
                         Button("Remove") {
                             vm.selectedImageData = nil
                             vm.selectedImagePreview = nil
                             pickerItem = nil
                         }
-                        .font(.footnote)
+                        .font(VibeTypography.sans(12, weight: .medium))
+                        .tint(theme.accent)
                     }
                     .padding(8)
-                    .background(Color.gray.opacity(0.08))
+                    .background(theme.surface)
+                    .overlay(RoundedRectangle(cornerRadius: 12).stroke(theme.border, lineWidth: 1))
                     .clipShape(RoundedRectangle(cornerRadius: 12))
                 }
 
-                HStack(spacing: 8) {
-                    PhotosPicker(selection: $pickerItem, matching: .images) {
-                        Image(systemName: "photo")
-                            .font(.title3)
-                            .frame(width: 40, height: 40)
-                    }
-                    .buttonStyle(.bordered)
-                    .onChange(of: pickerItem) { _, newValue in
-                        Task { await vm.setImage(item: newValue) }
-                    }
-
-                    TextField("Message", text: $vm.input, axis: .vertical)
-                        .textFieldStyle(.roundedBorder)
-
-                    Button(vm.isSending ? "..." : "Send") {
-                        Task { await vm.send(settings: settings, auth: auth) }
-                    }
-                    .buttonStyle(.borderedProminent)
-                    .disabled(vm.isSending)
-                }
+                composer
 
                 if !vm.errorMessage.isEmpty {
                     Text(vm.errorMessage)
-                        .font(.footnote)
-                        .foregroundStyle(.red)
+                        .font(VibeTypography.sans(12, weight: .regular))
+                        .foregroundStyle(theme.accent)
                         .frame(maxWidth: .infinity, alignment: .leading)
                 }
             }
             .padding()
+            .background(theme.background.ignoresSafeArea())
             .navigationTitle("Chat")
+            .navigationBarTitleDisplayMode(.inline)
             .task { await vm.loadModels(settings: settings, auth: auth) }
+        }
+    }
+
+    private var header: some View {
+        VibeCard(theme: theme) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Nellie Chat")
+                    .font(VibeTypography.sans(17, weight: .semibold))
+                    .foregroundStyle(theme.textPrimary)
+
+                if !vm.availableModels.isEmpty {
+                    Picker("Model", selection: $settings.selectedModel) {
+                        ForEach(vm.availableModels, id: \.self) { model in
+                            Text(model).tag(model)
+                        }
+                    }
+                    .pickerStyle(.menu)
+                    .tint(theme.primary)
+                }
+            }
+        }
+    }
+
+    private func chatBubble(_ msg: ChatBubble) -> some View {
+        VStack(alignment: .leading, spacing: 5) {
+            Text(msg.role.capitalized)
+                .font(VibeTypography.sans(12, weight: .semibold))
+                .foregroundStyle(theme.textMuted)
+
+            Text(msg.content.isEmpty && msg.role == "assistant" ? "Thinking..." : msg.content)
+                .font(VibeTypography.sans(16, weight: .regular))
+                .foregroundStyle(msg.role == "assistant" ? theme.textPrimary : theme.primaryForeground)
+                .padding(10)
+                .frame(maxWidth: .infinity, alignment: .leading)
+                .background(msg.role == "assistant" ? theme.surface : theme.brandGradient)
+                .overlay {
+                    if msg.role == "assistant" {
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(theme.border.opacity(0.75), lineWidth: 1)
+                    }
+                }
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+        }
+    }
+
+    private var composer: some View {
+        HStack(spacing: 8) {
+            PhotosPicker(selection: $pickerItem, matching: .images) {
+                Image(systemName: "photo")
+                    .font(.title3)
+                    .frame(width: 40, height: 40)
+            }
+            .buttonStyle(.bordered)
+            .tint(theme.secondary)
+            .onChange(of: pickerItem) { _, newValue in
+                Task { await vm.setImage(item: newValue) }
+            }
+
+            TextField("Message", text: $vm.input, axis: .vertical)
+                .padding(10)
+                .background(theme.surface)
+                .overlay(RoundedRectangle(cornerRadius: 10).stroke(theme.border, lineWidth: 1))
+                .clipShape(RoundedRectangle(cornerRadius: 10))
+                .foregroundStyle(theme.textPrimary)
+
+            Button(vm.isSending ? "..." : "Send") {
+                Task { await vm.send(settings: settings, auth: auth) }
+            }
+            .buttonStyle(.borderedProminent)
+            .tint(theme.primary)
+            .foregroundStyle(theme.primaryForeground)
+            .disabled(vm.isSending)
         }
     }
 }

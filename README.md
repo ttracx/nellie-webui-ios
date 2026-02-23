@@ -7,6 +7,7 @@ Conduit is a modern SwiftUI iOS client for OpenWebUI with support for:
 - Tool/Function catalog view
 - Session sign-in (`/api/v1/auths/signin`) and token persistence
 - Image attachment upload for chat (OpenWebUI file endpoints)
+- VibeCaaS branding with Light, Dark, and High-Contrast themes
 
 ## Architecture
 - SwiftUI + `@Observable` state containers
@@ -33,6 +34,17 @@ In app Settings:
 Conduit sends:
 - `Authorization: Bearer <token-or-key>`
 - `X-API-Key: <token-or-key>`
+
+## Branding: VibeCaaS Theme
+- Primary: `#6D4AFF` (Vibe Purple)
+- Secondary: `#14B8A6` (Aqua Teal)
+- Accent: `#FF8C00` (Signal Amber)
+- Theme modes: `System`, `Light`, `Dark`, `High Contrast`
+- Typography hooks:
+  - Sans/UI: `Inter`
+  - Mono: `JetBrainsMono-Regular`
+
+If these fonts are not bundled in the app target, iOS falls back to system fonts.
 
 ## Notes
 - This environment cannot run Xcode (`xcodebuild` is unavailable on Linux), so compile/run on macOS.

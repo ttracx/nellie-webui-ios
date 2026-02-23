@@ -10,7 +10,7 @@ struct ConduitApp: App {
             RootTabView()
                 .environment(settings)
                 .environment(session)
-                .tint(.accentColor)
+                .tint(Color(red: 109 / 255, green: 74 / 255, blue: 1.0))
         }
     }
 }
